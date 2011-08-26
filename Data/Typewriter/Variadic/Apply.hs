@@ -7,7 +7,6 @@
 {-# LANGUAGE RankNTypes #-}
 module Data.Typewriter.Variadic.Apply where
 
-import Data.Data
 import Data.Typewriter.Core
 import Data.Typewriter.Variadic.Natural
 
