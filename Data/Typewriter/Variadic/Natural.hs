@@ -1,9 +1,12 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 module Data.Typewriter.Variadic.Natural where
 
+import Control.Applicative
 import Data.Typewriter.Core
 
 
@@ -32,6 +35,12 @@ class (Demote n, Unlift n ~ PeanoNat) => Natural n where
                   -> Replicate2 n f z a -> Replicate2 n f z b
                   -> Replicate2 n f z c
     -- auuuuughhhh
+    sequenceNat2  :: (Applicative p) => n 
+                  -> (forall g x. f g x -> (x, g x))
+                  -> (forall g x. x -> g x -> f g x)
+                  -> (z (p a) -> p (z a))
+                  -> Replicate2 n f z (p a) -> p (Replicate2 n f z a)
+    -- still?!
     foldrNat2     :: n -> (forall g x. f g x -> (x, g x))
                   -> (a -> r -> r) -> (z a -> r)
                   -> Replicate2 n f z a -> r
@@ -58,6 +67,7 @@ instance Natural Z where
     replicateNat2 Zero f z = z
     fmapNat2 Zero _ _ _ fz x = fz x
     fzipWithNat2 Zero _ _ _ fz x y = fz x y
+    sequenceNat2 Zero _ _ fz x = fz x
     foldrNat2 Zero _ _ fz x = fz x
     unfoldrNat2 Zero _ _ fz x = fz x
 
@@ -72,12 +82,13 @@ instance (Natural n) => Natural (S n) where
       where (x, xs') = f1 xs
             (y, ys') = f1 ys
             xys = fzipWithNat2 nat f1 f2 fxy fz xs' ys'
+    sequenceNat2 (Succ nat) f1 f2 fz xs = f2 <$> x <*> sequenceNat2 nat f1 f2 fz xs'
+      where (x, xs') = f1 xs
     foldrNat2 (Succ nat) f1 fx fz xs = fx x r
       where (x, xs') = f1 xs
             r = foldrNat2 nat f1 fx fz xs'
     unfoldrNat2 (Succ nat) f1 fx fz x = f1 y (unfoldrNat2 nat f1 fx fz x')
       where (y, x') = fx x
-    
 
 type family Add x y :: *
 type instance Add x Z = x
