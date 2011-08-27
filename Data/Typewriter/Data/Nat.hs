@@ -15,16 +15,16 @@ instance TermProxy O where term = O
 data X = X deriving (Show)
 instance TermProxy X where term = X
 
-class Natural n where
+class BinNat n where
     toInt :: n -> Int
 
-instance Natural Unit where
+instance BinNat Unit where
     toInt Unit = 0
 
-instance (Natural nat) => Natural (X :*: nat) where
+instance (BinNat nat) => BinNat (X :*: nat) where
     toInt (X :*: nat) = 1 + 2 * toInt nat
 
-instance (Natural nat) => Natural (O :*: nat) where
+instance (BinNat nat) => BinNat (O :*: nat) where
     toInt (O :*: nat) = 2 * toInt nat
 
 
